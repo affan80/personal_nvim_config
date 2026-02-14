@@ -76,3 +76,16 @@ vim.api.nvim_create_autocmd("BufWritePre", {
     vim.lsp.buf.format()
   end,
 })
+
+-- jupiter keymap
+vim.keymap.set("n", "<leader>mi", ":MoltenInit<CR>", { desc = "Molten Init" })
+vim.keymap.set("n", "<leader>rr", ":MoltenEvaluateOperator<CR>", { desc = "Run Operator" })
+vim.keymap.set("v", "<leader>m", ":MoltenEvaluateVisual<CR>", { desc = "Run Visual" })
+vim.keymap.set("n", "<leader>rc", ":MoltenEvaluateLine<CR>", { desc = "Run Line" })
+vim.keymap.set("n", "<leader>ro", ":MoltenOpenOutput<CR>", { desc = "Open Output" })
+vim.keymap.set("n", "<leader>rd", ":MoltenDelete<CR>", { desc = "Delete Cell" })
+
+
+-- command to run pythosn nvimg
+vim.g.python3_host_prog = vim.fn.expand("~/.config/nvim/venv/bin/python")
+
