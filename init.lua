@@ -1,4 +1,8 @@
+-- ======================
+-- BASIC SETTINGS
+-- ======================
 vim.g.mapleader = " "
+
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.termguicolors = true
@@ -7,6 +11,9 @@ vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
 
+-- ======================
+-- LAZY.NVIM BOOTSTRAP
+-- ======================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -21,71 +28,159 @@ end
 vim.opt.rtp:prepend(lazypath)
 require("lazy").setup("plugins")
 
-vim.keymap.set("n", "<leader>gb", ":Gitsigns blame_line<CR>")
-vim.keymap.set("n", "<leader>gp", ":Gitsigns preview_hunk<CR>")
-vim.keymap.set("n", "<leader>gr", ":Gitsigns reset_hunk<CR>")
+-- ======================
+-- GIT / GITHUB SHORTCUTS
+-- ======================
+local gs = require("gitsigns")
 
--- vim.keymap.set("n", "<leader>e", ":Ex<CR>")	-- Extended
-vim.keymap.set("n", "<leader>w", ":w<CR>")	-- Save code
-vim.keymap.set("n", "<leader>wq", ":wq<CR>")	-- Save & qiut  
-vim.keymap.set("n", "<leader>q", ":q<CR>") 	-- quit
-vim.keymap.set("n", "<leader>so", ":so<CR>")  	-- Sorce code
-vim.keymap.set("n", "<leader>tr", ":term<CR>") 	-- Open terminal
+-- Gitsigns (Hunks)
+vim.keymap.set("n", "]c", function()
+  if vim.wo.diff then return "]c" end
+  vim.schedule(function() gs.next_hunk() end)
+  return "<Ignore>"
+end, { expr = true, desc = "Next Hunk" })
 
--- Horizontal split
+vim.keymap.set("n", "[c", function()
+  if vim.wo.diff then return "[c" end
+  vim.schedule(function() gs.prev_hunk() end)
+  return "<Ignore>"
+end, { expr = true, desc = "Prev Hunk" })
+
+vim.keymap.set("n", "<leader>gs", gs.stage_hunk, { desc = "Stage Hunk" })
+vim.keymap.set("n", "<leader>gr", gs.reset_hunk, { desc = "Reset Hunk" })
+vim.keymap.set("n", "<leader>gu", gs.undo_stage_hunk, { desc = "Undo Stage Hunk" })
+vim.keymap.set("n", "<leader>gp", gs.preview_hunk, { desc = "Preview Hunk" })
+vim.keymap.set("n", "<leader>gb", gs.blame_line, { desc = "Blame Line" })
+vim.keymap.set("n", "<leader>gd", gs.diffthis, { desc = "Git Diff" })
+
+-- Fugitive / GitHub
+vim.keymap.set("n", "<leader>gg", "<cmd>Git<CR>", { desc = "Git Status" })
+vim.keymap.set("n", "<leader>gc", "<cmd>Git commit<CR>", { desc = "Git Commit" })
+vim.keymap.set("n", "<leader>gp", "<cmd>Git push<CR>", { desc = "Git Push" })
+vim.keymap.set("n", "<leader>gl", "<cmd>Git pull<CR>", { desc = "Git Pull" })
+vim.keymap.set("n", "<leader>go", "<cmd>GBrowse<CR>", { desc = "Open on GitHub (Browser)" })
+vim.keymap.set("v", "<leader>go", ":'<,'>GBrowse<CR>", { desc = "Open Selection on GitHub" })
+
+-- Git Rollback / Revert
+vim.keymap.set("n", "<leader>grv", "<cmd>Git revert HEAD<CR>", { desc = "Revert last commit" })
+vim.keymap.set("n", "<leader>grf", "<cmd>Git checkout HEAD -- %<CR>", { desc = "Rollback current file to last commit" })
+vim.keymap.set("n", "<leader>glg", "<cmd>Git log --oneline --graph --all<CR>", { desc = "Show Git Log (Graph)" })
+
+-- ======================
+-- BASIC COMMANDS
+-- ======================
+vim.keymap.set("n", "<leader>w", "<cmd>w<CR>")
+vim.keymap.set("n", "<leader>wq", "<cmd>wq<CR>")
+vim.keymap.set("n", "<leader>q", "<cmd>q<CR>")
+vim.keymap.set("n", "<leader>so", "<cmd>w | source %<CR>")
+
+-- ======================
+-- WINDOW MANAGEMENT
+-- ======================
 vim.keymap.set("n", "<leader>-", "<cmd>split<CR>")
-vim.keymap.set("n", "<leader>sd", "<cmd>split<CR>")
-
--- Vertical split
-vim.keymap.set("n", "<leader>sr", "<cmd>vsplit<CR>")
 vim.keymap.set("n", "<leader>|", "<cmd>vsplit<CR>")
 
--- Moveing betweent window
-vim.keymap.set("n", "<leader>wl", "<C-w>l")
-vim.keymap.set("n", "<leader>wk", "<C-w>k")
 vim.keymap.set("n", "<leader>wh", "<C-w>h")
 vim.keymap.set("n", "<leader>wj", "<C-w>j")
+vim.keymap.set("n", "<leader>wk", "<C-w>k")
+vim.keymap.set("n", "<leader>wl", "<C-w>l")
 
+vim.keymap.set("n", "<leader>w-", "<C-w>-")
+vim.keymap.set("n", "<leader>w=", "<C-w>=")
 
--- Window Size
-vim.keymap.set("n", "<leader>w-", "<C-w>-",{remap = true})
-vim.keymap.set("n", "<leader>w=", "<C-w>=",{remap = true})
+-- ======================
+-- FILE TREE
+-- ======================
+vim.keymap.set("n", "<leader>e", "<cmd>Neotree toggle<CR>")
 
--- Neo-tree 
-vim.keymap.set("n", "<leader>e", ":Neotree toggle<CR>")
+-- ======================
+-- TERMINAL (ToggleTerm – MANUAL ONLY)
+-- ======================
+vim.keymap.set("n", "<leader>tt", "<cmd>ToggleTerm<CR>")
+vim.keymap.set("n", "<leader>tf", "<cmd>ToggleTerm direction=float<CR>")
+vim.keymap.set("n", "<leader>th", "<cmd>ToggleTerm direction=horizontal<CR>")
+vim.keymap.set("n", "<leader>tv", "<cmd>ToggleTerm direction=vertical<CR>")
 
--- Terminal
-vim.keymap.set("n", "<leader>t", ":ToggleTerm<CR>")
-vim.keymap.set("n", "<leader>tf", ":ToggleTerm direction=float<CR>")
-vim.keymap.set("n", "<leader>th", ":ToggleTerm direction=horizontal<CR>")
-vim.keymap.set("n", "<leader>tv", ":ToggleTerm direction=vertical<CR>")
+-- ======================
+-- TELESCOPE
+-- ======================
+vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<CR>")
+vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<CR>")
 
---Telescope 
-vim.keymap.set("n", "<leader>ff", ":Telescope find_files<CR>")
-vim.keymap.set("n", "<leader>fg", ":Telescope live_grep<CR>")
+-- ======================
+-- BUFFER NAVIGATION (Tabs)
+-- ======================
+vim.keymap.set("n", "L", "<cmd>bnext<CR>", { desc = "Next Buffer" })
+vim.keymap.set("n", "H", "<cmd>bprev<CR>", { desc = "Previous Buffer" })
+vim.keymap.set("n", "<leader>x", "<cmd>bdelete<CR>", { desc = "Close Buffer" })
 
---- save and lazy sync
-vim.keymap.set("n", "<leader>lS", ":w | Lazy sync<CR>", { desc = "Save & Lazy sync" })
+-- ======================
+-- RUN CURRENT FILE / PROJECT (Leader + Enter)
+-- ======================
+vim.keymap.set("n", "<leader><CR>", function()
+  require("run").run()
+end, { desc = "Run current file/project" })
 
--- Source file (save + reload)
-vim.keymap.set("n", "<leader>so", ":w | source %<CR>")
+-- Close run terminal with qq
+vim.keymap.set("n", "qq", function()
+  local run = require("run")
+  if run.last_term_win and vim.api.nvim_win_is_valid(run.last_term_win) then
+    vim.api.nvim_win_close(run.last_term_win, true)
+    run.last_term_win = nil
+  else
+    -- Fallback: just close current window if it's a terminal
+    if vim.bo.builtin == "terminal" or vim.bo.filetype == "toggleterm" then
+      vim.cmd("q")
+    end
+  end
+end, { desc = "Close run terminal" })
 
+-- ======================
+-- DEBUGGING (DAP)
+-- ======================
+vim.keymap.set("n", "<leader>db", function() require("dap").toggle_breakpoint() end, { desc = "Toggle Breakpoint" })
+vim.keymap.set("n", "<leader>dc", function() require("dap").continue() end, { desc = "Continue / Start Debugging" })
+vim.keymap.set("n", "<leader>di", function() require("dap").step_into() end, { desc = "Step Into" })
+vim.keymap.set("n", "<leader>do", function() require("dap").step_over() end, { desc = "Step Over" })
+vim.keymap.set("n", "<leader>dt", function() require("dap").terminate() end, { desc = "Terminate" })
+vim.keymap.set("n", "<leader>du", function() require("dapui").toggle() end, { desc = "Toggle Debug UI" })
+vim.keymap.set("n", "<leader>dr", function() require("dap").repl.open() end, { desc = "Open REPL" })
+
+-- ======================
+-- RUN TESTS (SAFE)
+-- ======================
+vim.keymap.set("n", "<leader>rt", function()
+  local ok, run = pcall(require, "run")
+  if ok and run.test then
+    run.test()
+  else
+    vim.notify("No test runner available", vim.log.levels.WARN)
+  end
+end, { desc = "Run tests" })
+
+-- ======================
+-- FORMAT ON SAVE (SAFE, FUTURE-PROOF)
+-- ======================
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = { "*.js", "*.ts", "*.jsx", "*.tsx", "*.json" },
   callback = function()
-    vim.lsp.buf.format()
+    if #vim.lsp.get_clients({ bufnr = 0 }) > 0 then
+      vim.lsp.buf.format({ async = false })
+    end
   end,
 })
 
--- jupiter keymap
-vim.keymap.set("n", "<leader>mi", ":MoltenInit<CR>", { desc = "Molten Init" })
-vim.keymap.set("n", "<leader>rr", ":MoltenEvaluateOperator<CR>", { desc = "Run Operator" })
-vim.keymap.set("v", "<leader>m", ":MoltenEvaluateVisual<CR>", { desc = "Run Visual" })
-vim.keymap.set("n", "<leader>rc", ":MoltenEvaluateLine<CR>", { desc = "Run Line" })
-vim.keymap.set("n", "<leader>ro", ":MoltenOpenOutput<CR>", { desc = "Open Output" })
-vim.keymap.set("n", "<leader>rd", ":MoltenDelete<CR>", { desc = "Delete Cell" })
+-- ======================
+-- MOLTEN / JUPYTER
+-- ======================
+vim.keymap.set("n", "<leader>mi", "<cmd>MoltenInit<CR>")
+-- removed <leader>rr conflict
+vim.keymap.set("v", "<leader>m", "<cmd>MoltenEvaluateVisual<CR>")
+vim.keymap.set("n", "<leader>rc", "<cmd>MoltenEvaluateLine<CR>")
+vim.keymap.set("n", "<leader>ro", "<cmd>MoltenOpenOutput<CR>")
+vim.keymap.set("n", "<leader>rd", "<cmd>MoltenDelete<CR>")
 
-
--- command to run pythosn nvimg
+-- ======================
+-- PYTHON HOST
+-- ======================
 vim.g.python3_host_prog = vim.fn.expand("~/.config/nvim/venv/bin/python")
-

@@ -36,26 +36,79 @@ return {
   {
     "akinsho/toggleterm.nvim",
     config = function()
-      require("toggleterm").setup()
+      require("toggleterm").setup({
+        open_mapping = [[<c-\>]],
+        direction = 'float',
+      })
     end,
-  },
-
-  {
-    "neovim/nvim-lspconfig",
-  },
-
-  {
-    "hrsh7th/nvim-cmp",
-    dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
-      "L3MON4D3/LuaSnip",
-    },
   },
 
   {
     "nvim-telescope/telescope.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("telescope").setup({
+        defaults = {
+          file_ignore_patterns = { "node_modules", ".git", "venv" },
+        },
+      })
+    end,
+  },
+
+  -- Treesitter for better syntax highlighting
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    config = function()
+      local ok, configs = pcall(require, "nvim-treesitter.configs")
+      if ok then
+        configs.setup({
+          ensure_installed = { 
+            "lua", "vim", "vimdoc", "javascript", "typescript", "tsx", "html", "css", 
+            "json", "python", "rust", "go", "cpp", "c", "java", "php", "ruby", "bash", 
+            "yaml", "dockerfile", "markdown", "markdown_inline" 
+          },
+          highlight = { enable = true },
+          indent = { enable = true },
+        })
+      end
+    end,
+  },
+
+  -- Status line
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("lualine").setup()
+    end,
+  },
+
+  -- Bufferline (Tabs)
+  {
+    "akinsho/bufferline.nvim",
+    version = "*",
+    dependencies = "nvim-tree/nvim-web-devicons",
+    config = function()
+      require("bufferline").setup({})
+    end,
+  },
+
+  -- Autopairs
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    config = function()
+      require("nvim-autopairs").setup({})
+    end,
+  },
+
+  -- Commenting
+  {
+    "numToStr/Comment.nvim",
+    config = function()
+      require("Comment").setup()
+    end,
   },
 
 }
-
