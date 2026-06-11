@@ -12,6 +12,11 @@ vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
 
 -- ======================
+-- CLIPBOARD (Sync with System)
+-- ======================
+vim.opt.clipboard = "unnamedplus"
+
+-- ======================
 -- LAZY.NVIM BOOTSTRAP
 -- ======================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
