@@ -3,6 +3,10 @@
 -- ======================
 vim.g.mapleader = " "
 
+local nvim_venv = vim.fn.expand("~/.config/nvim/venv")
+vim.g.python3_host_prog = nvim_venv .. "/bin/python"
+vim.env.PATH = nvim_venv .. "/bin:" .. vim.env.PATH
+
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.termguicolors = true
@@ -178,14 +182,20 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 -- ======================
 -- MOLTEN / JUPYTER
 -- ======================
-vim.keymap.set("n", "<leader>mi", "<cmd>MoltenInit<CR>")
+vim.keymap.set("n", "<leader>mi", "<cmd>MoltenInit nvim-python<CR>", { desc = "Initialize Python kernel" })
+vim.keymap.set("n", "<leader>mI", "<cmd>MoltenInit<CR>", { desc = "Choose kernel" })
+vim.keymap.set("n", "<leader>me", "<cmd>MoltenEvaluateOperator<CR>", { desc = "Evaluate operator" })
 -- removed <leader>rr conflict
-vim.keymap.set("v", "<leader>m", "<cmd>MoltenEvaluateVisual<CR>")
-vim.keymap.set("n", "<leader>rc", "<cmd>MoltenEvaluateLine<CR>")
-vim.keymap.set("n", "<leader>ro", "<cmd>MoltenOpenOutput<CR>")
-vim.keymap.set("n", "<leader>rd", "<cmd>MoltenDelete<CR>")
-
--- ======================
--- PYTHON HOST
--- ======================
-vim.g.python3_host_prog = vim.fn.expand("~/.config/nvim/venv/bin/python")
+vim.keymap.set("v", "<leader>m", ":<C-u>MoltenEvaluateVisual<CR>gv", { desc = "Evaluate visual selection" })
+vim.keymap.set("n", "<leader>rc", "<cmd>MoltenEvaluateLine<CR>", { desc = "Evaluate line" })
+vim.keymap.set("n", "<leader>rr", "<cmd>MoltenReevaluateCell<CR>", { desc = "Re-evaluate cell" })
+vim.keymap.set("n", "<leader>rn", "<cmd>MoltenNext<CR>", { desc = "Next cell" })
+vim.keymap.set("n", "<leader>rp", "<cmd>MoltenPrev<CR>", { desc = "Previous cell" })
+vim.keymap.set("n", "<leader>ro", "<cmd>MoltenShowOutput<CR>", { desc = "Show output" })
+vim.keymap.set("n", "<leader>rh", "<cmd>MoltenHideOutput<CR>", { desc = "Hide output" })
+vim.keymap.set("n", "<leader>re", "<cmd>noautocmd MoltenEnterOutput<CR>", { desc = "Enter output" })
+vim.keymap.set("n", "<leader>rd", "<cmd>MoltenDelete<CR>", { desc = "Delete cell output" })
+vim.keymap.set("n", "<leader>rD", "<cmd>MoltenDelete!<CR>", { desc = "Delete all outputs" })
+vim.keymap.set("n", "<leader>rs", "<cmd>MoltenSave<CR>", { desc = "Save outputs" })
+vim.keymap.set("n", "<leader>rl", "<cmd>MoltenLoad<CR>", { desc = "Load outputs" })
+vim.keymap.set("n", "<leader>rx", "<cmd>MoltenExportOutput<CR>", { desc = "Export notebook output" })

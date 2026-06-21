@@ -23,6 +23,7 @@ return {
         { "<leader>t", group = "Terminal" },
         { "<leader>m", group = "Molten (Jupyter)" },
         { "<leader>r", group = "Run / Rollback" },
+        { "<leader>o", group = "Orgmode" },
       })
     end
   }
