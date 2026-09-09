@@ -1,7 +1,7 @@
 return {
   -- Mason for managing external tooling
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     build = ":MasonUpdate",
     config = function()
       local ok, mason = pcall(require, "mason")
@@ -10,38 +10,68 @@ return {
   },
 
   {
-    "williamboman/mason-lspconfig.nvim",
-    dependencies = { 
-      "williamboman/mason.nvim",
+    "mason-org/mason-lspconfig.nvim",
+    dependencies = {
+      "mason-org/mason.nvim",
       "neovim/nvim-lspconfig",
       "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
-      local ok_lsp, lspconfig = pcall(require, "lspconfig")
       local ok_mason, mason_lspconfig = pcall(require, "mason-lspconfig")
-      local ok_cmp_lsp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-      
-      if not (ok_lsp and ok_mason) then return end
+      if not ok_mason then return end
 
       -- Capabilities for nvim-cmp
       local capabilities = vim.lsp.protocol.make_client_capabilities()
+      local ok_cmp_lsp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
       if ok_cmp_lsp then
         capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
       end
 
-      -- 1. Setup Mason-LSPConfig
-      if mason_lspconfig.setup then
-        mason_lspconfig.setup({
-          ensure_installed = {
-            "ts_ls", "eslint", "tailwindcss", "html", "cssls", "jsonls",
-            "lua_ls", "pyright", "rust_analyzer", "gopls", "clangd", 
-            "jdtls", "intelephense", "ruby_lsp", "bashls",
-            "yamlls", "dockerls", "marksman", "terraformls"
-          },
-        })
+      local servers = {
+        "ts_ls", "eslint", "tailwindcss", "html", "cssls", "jsonls",
+        "lua_ls", "pyright", "rust_analyzer", "gopls", "clangd",
+        "jdtls", "intelephense", "ruby_lsp", "bashls",
+        "yamlls", "dockerls", "marksman", "terraformls"
+      }
+
+      -- MATLAB language server (only when MATLAB is installed)
+      if vim.fn.executable("matlab") == 1 then
+        table.insert(servers, "matlab_ls")
       end
 
-      -- 2. Global LSP Keymaps (on attach)
+      -- Mason-LSPConfig v2: install servers only; enabling is manual
+      mason_lspconfig.setup({ ensure_installed = servers })
+
+      -- Default config applied to every enabled server
+      vim.lsp.config("*", { capabilities = capabilities })
+
+      -- Server-specific settings
+      vim.lsp.config("lua_ls", {
+        settings = {
+          Lua = { diagnostics = { globals = { "vim" } } },
+        },
+      })
+      vim.lsp.config("rust_analyzer", {
+        settings = {
+          ["rust-analyzer"] = {
+            cargo = { allFeatures = true },
+            checkOnSave = { command = "clippy" },
+          },
+        },
+      })
+
+      -- Enable all servers (native 0.11+ API)
+      for _, server in ipairs(servers) do
+        pcall(vim.lsp.enable, server)
+      end
+    end,
+  },
+
+  -- Global LSP Keymaps (on attach)
+  -- (kept as a separate lazy spec so it always registers early)
+  {
+    "neovim/nvim-lspconfig",
+    config = function()
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(ev)
           local opts = { buffer = ev.buf }
@@ -51,51 +81,13 @@ return {
           vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
           vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
           vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-          vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-          vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+          vim.keymap.set("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, opts)
+          vim.keymap.set("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, opts)
           vim.keymap.set("n", "<leader>f", function()
             vim.lsp.buf.format({ async = true })
           end, opts)
         end,
       })
-
-      -- 3. Setup Handlers (with existence check)
-      if mason_lspconfig.setup_handlers then
-        mason_lspconfig.setup_handlers({
-          function(server_name)
-            pcall(function() 
-              lspconfig[server_name].setup({
-                capabilities = capabilities,
-              }) 
-            end)
-          end,
-          ["lua_ls"] = function()
-            pcall(function()
-              lspconfig.lua_ls.setup({
-                capabilities = capabilities,
-                settings = {
-                  Lua = {
-                    diagnostics = { globals = { "vim" } },
-                  },
-                },
-              })
-            end)
-          end,
-          ["rust_analyzer"] = function()
-            pcall(function()
-              lspconfig.rust_analyzer.setup({
-                capabilities = capabilities,
-                settings = {
-                  ["rust-analyzer"] = {
-                    cargo = { allFeatures = true },
-                    checkOnSave = { command = "clippy" },
-                  },
-                },
-              })
-            end)
-          end,
-        })
-      end
     end,
   },
 

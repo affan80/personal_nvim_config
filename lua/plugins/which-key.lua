@@ -17,6 +17,7 @@ return {
       -- Register group names for a better UI
       wk.add({
         { "<leader>g", group = "Git / GitHub" },
+        { "<leader>l", group = "LazyGit" },
         { "<leader>d", group = "Debugger (DAP)" },
         { "<leader>w", group = "Windows / Save" },
         { "<leader>f", group = "Find (Telescope) / Format" },

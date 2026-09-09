@@ -21,10 +21,33 @@ vim.opt.expandtab = true
 vim.opt.clipboard = "unnamedplus"
 
 -- ======================
+-- MATLAB
+-- ======================
+if vim.fn.executable("matlab") == 1 then
+  vim.g.filetype_m = "matlab" -- treat .m files as MATLAB, not Octave/ObjC
+end
+
+-- Explicit provider: wl-clipboard (Wayland).
+-- Fixes nvim failing to auto-detect when WAYLAND_DISPLAY isn't inherited.
+-- Note: commands must be arg-lists; nvim does NOT run these through a shell.
+vim.g.clipboard = {
+  name = "wl-clipboard",
+  copy = {
+    ["+"] = { "wl-copy", "--type", "text/plain" },
+    ["*"] = { "wl-copy", "--primary", "--type", "text/plain" },
+  },
+  paste = {
+    ["+"] = { "wl-paste", "--no-newline" },
+    ["*"] = { "wl-paste", "--no-newline" },
+  },
+  cache_enabled = 0,
+}
+
+-- ======================
 -- LAZY.NVIM BOOTSTRAP
 -- ======================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
   vim.fn.system({
     "git",
     "clone",
@@ -58,7 +81,7 @@ end, { expr = true, desc = "Prev Hunk" })
 vim.keymap.set("n", "<leader>gs", gs.stage_hunk, { desc = "Stage Hunk" })
 vim.keymap.set("n", "<leader>gr", gs.reset_hunk, { desc = "Reset Hunk" })
 vim.keymap.set("n", "<leader>gu", gs.undo_stage_hunk, { desc = "Undo Stage Hunk" })
-vim.keymap.set("n", "<leader>gp", gs.preview_hunk, { desc = "Preview Hunk" })
+vim.keymap.set("n", "<leader>gP", gs.preview_hunk, { desc = "Preview Hunk" })
 vim.keymap.set("n", "<leader>gb", gs.blame_line, { desc = "Blame Line" })
 vim.keymap.set("n", "<leader>gd", gs.diffthis, { desc = "Git Diff" })
 
@@ -74,6 +97,14 @@ vim.keymap.set("v", "<leader>go", ":'<,'>GBrowse<CR>", { desc = "Open Selection 
 vim.keymap.set("n", "<leader>grv", "<cmd>Git revert HEAD<CR>", { desc = "Revert last commit" })
 vim.keymap.set("n", "<leader>grf", "<cmd>Git checkout HEAD -- %<CR>", { desc = "Rollback current file to last commit" })
 vim.keymap.set("n", "<leader>glg", "<cmd>Git log --oneline --graph --all<CR>", { desc = "Show Git Log (Graph)" })
+
+-- ======================
+-- LAZYGIT
+-- ======================
+vim.keymap.set("n", "<leader>lg", "<cmd>LazyGit<CR>", { desc = "LazyGit" })
+vim.keymap.set("n", "<leader>lf", "<cmd>LazyGitCurrentFile<CR>", { desc = "LazyGit (current file)" })
+vim.keymap.set("n", "<leader>lc", "<cmd>LazyGitConfig<CR>", { desc = "LazyGit Config" })
+vim.keymap.set("n", "<leader>ll", "<cmd>LazyGitFilter<CR>", { desc = "LazyGit Commits" })
 
 -- ======================
 -- BASIC COMMANDS
@@ -138,7 +169,7 @@ vim.keymap.set("n", "qq", function()
     run.last_term_win = nil
   else
     -- Fallback: just close current window if it's a terminal
-    if vim.bo.builtin == "terminal" or vim.bo.filetype == "toggleterm" then
+    if vim.bo.buftype == "terminal" or vim.bo.filetype == "toggleterm" then
       vim.cmd("q")
     end
   end
@@ -180,17 +211,40 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 -- ======================
+-- CUSTOM COMMANDS
+-- ======================
+vim.api.nvim_create_user_command("RunNotebookCell", "<cmd>MoltenEvaluateLine<CR>", { desc = "Run current Jupyter notebook cell" })
+vim.keymap.set("n", "<leader>rc", "<cmd>MoltenEvaluateLine<CR>", { desc = "Evaluate line" })
+
+vim.keymap.set("n", "<leader>ra", function()
+  local ok, molten_status = pcall(require, "molten.status")
+  local kernel = ok and molten_status.kernels() or ""
+  if kernel == "" then
+    vim.cmd("MoltenInit nvim-python")
+    kernel = "nvim-python"
+  else
+    kernel = vim.split(kernel, ", ")[1]
+  end
+  local pos = vim.api.nvim_win_get_cursor(0)
+  vim.schedule(function()
+    vim.call("MoltenEvaluateRange", kernel, 1, vim.api.nvim_buf_line_count(0))
+    vim.api.nvim_win_set_cursor(0, pos)
+  end)
+end, { desc = "Run all cells" })
+-- ======================
 -- MOLTEN / JUPYTER
 -- ======================
 vim.keymap.set("n", "<leader>mi", "<cmd>MoltenInit nvim-python<CR>", { desc = "Initialize Python kernel" })
-vim.keymap.set("n", "<leader>mI", "<cmd>MoltenInit<CR>", { desc = "Choose kernel" })
+vim.keymap.set("n", "<leader>mI", "<cmd>MoltenInit<CR>", { desc = "Choose/Change kernel" })
+vim.keymap.set("n", "<leader>mr", "<cmd>MoltenRestart!<CR>", { desc = "Restart kernel" })
+vim.keymap.set("n", "<leader>mR", "<cmd>MoltenDeinit<CR>", { desc = "Reset/Deinitialize kernel" })
+-- ... (rest of keymaps)
 vim.keymap.set("n", "<leader>me", "<cmd>MoltenEvaluateOperator<CR>", { desc = "Evaluate operator" })
 -- removed <leader>rr conflict
 vim.keymap.set("v", "<leader>m", ":<C-u>MoltenEvaluateVisual<CR>gv", { desc = "Evaluate visual selection" })
-vim.keymap.set("n", "<leader>rc", "<cmd>MoltenEvaluateLine<CR>", { desc = "Evaluate line" })
 vim.keymap.set("n", "<leader>rr", "<cmd>MoltenReevaluateCell<CR>", { desc = "Re-evaluate cell" })
-vim.keymap.set("n", "<leader>rn", "<cmd>MoltenNext<CR>", { desc = "Next cell" })
-vim.keymap.set("n", "<leader>rp", "<cmd>MoltenPrev<CR>", { desc = "Previous cell" })
+vim.keymap.set("n", "<leader>mN", "<cmd>MoltenNext<CR>", { desc = "Next cell" })
+vim.keymap.set("n", "<leader>mP", "<cmd>MoltenPrev<CR>", { desc = "Previous cell" })
 vim.keymap.set("n", "<leader>ro", "<cmd>MoltenShowOutput<CR>", { desc = "Show output" })
 vim.keymap.set("n", "<leader>rh", "<cmd>MoltenHideOutput<CR>", { desc = "Hide output" })
 vim.keymap.set("n", "<leader>re", "<cmd>noautocmd MoltenEnterOutput<CR>", { desc = "Enter output" })

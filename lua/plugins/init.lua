@@ -55,23 +55,36 @@ return {
     end,
   },
 
-  -- Treesitter for better syntax highlighting
+  -- Treesitter for better syntax highlighting (main-branch API)
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
+    lazy = false,
     config = function()
-      local ok, configs = pcall(require, "nvim-treesitter.configs")
-      if ok then
-        configs.setup({
-          ensure_installed = { 
-            "lua", "vim", "vimdoc", "javascript", "typescript", "tsx", "html", "css", 
-            "json", "python", "rust", "go", "cpp", "c", "java", "php", "ruby", "bash", 
-            "yaml", "dockerfile", "markdown", "markdown_inline" 
-          },
-          highlight = { enable = true },
-          indent = { enable = true },
-        })
-      end
+      local ok, ts = pcall(require, "nvim-treesitter")
+      if not ok then return end
+
+      local parsers = {
+        "lua", "vim", "vimdoc", "javascript", "typescript", "tsx", "html", "css",
+        "json", "python", "rust", "go", "cpp", "c", "java", "php", "ruby", "bash",
+        "yaml", "dockerfile", "markdown", "markdown_inline"
+      }
+      pcall(ts.install, parsers)
+
+      local ft_map = {
+        lua = "lua", vim = "vim", vimdoc = "vimdoc", javascript = "javascript",
+        typescript = "typescript", typescriptreact = "tsx", javascriptreact = "tsx",
+        html = "html", css = "css", json = "json", python = "python", rust = "rust",
+        go = "go", cpp = "cpp", c = "c", java = "java", php = "php", ruby = "ruby",
+        sh = "bash", yaml = "yaml", dockerfile = "dockerfile", markdown = "markdown",
+      }
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = vim.tbl_keys(ft_map),
+        callback = function(args)
+          pcall(vim.treesitter.start, args.buf)
+          vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end,
+      })
     end,
   },
 
@@ -117,6 +130,7 @@ return {
     config = function()
       require("nvim-ts-autotag").setup()
     end,
-  },
-
+  }
 }
+
+

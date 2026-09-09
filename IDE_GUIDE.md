@@ -37,6 +37,19 @@ Powered by Mason, providing auto-completion, linting, and formatting.
 - **Commenting:** Use `gcc` to comment a line or `gc` in visual mode to comment a block.
 - **Treesitter:** Advanced syntax highlighting and indentation.
 
+## 📓 Jupyter Notebooks
+- `<leader>mi`: Initialize Python (nvim-python) kernel
+- `<leader>mI`: Change kernel
+- `<leader>mr`: Restart kernel
+- `<leader>mR`: Reset/Deinitialize kernel
+- `<leader>rc`: Run current cell/line
+- `<leader>ra`: Run all cells
+- `<leader>rr`: Re-evaluate cell
+- `<leader>rn`: Next cell
+- `<leader>rp`: Previous cell
+- `<leader>ro`: Show output
+- `<leader>rh`: Hide output
+
 ## 📦 Plugin Management
 Plugins are managed by `lazy.nvim`. Configuration is split into:
 - `init.lua`: Main settings and keymaps.
