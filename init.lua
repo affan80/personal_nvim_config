@@ -30,18 +30,20 @@ end
 -- Explicit provider: wl-clipboard (Wayland).
 -- Fixes nvim failing to auto-detect when WAYLAND_DISPLAY isn't inherited.
 -- Note: commands must be arg-lists; nvim does NOT run these through a shell.
-vim.g.clipboard = {
-  name = "wl-clipboard",
-  copy = {
-    ["+"] = { "wl-copy", "--type", "text/plain" },
-    ["*"] = { "wl-copy", "--primary", "--type", "text/plain" },
-  },
-  paste = {
-    ["+"] = { "wl-paste", "--no-newline" },
-    ["*"] = { "wl-paste", "--no-newline" },
-  },
-  cache_enabled = 0,
-}
+if vim.fn.executable("wl-copy") == 1 and vim.fn.executable("wl-paste") == 1 then
+  vim.g.clipboard = {
+    name = "wl-clipboard",
+    copy = {
+      ["+"] = { "wl-copy", "--type", "text/plain" },
+      ["*"] = { "wl-copy", "--primary", "--type", "text/plain" },
+    },
+    paste = {
+      ["+"] = { "wl-paste", "--no-newline" },
+      ["*"] = { "wl-paste", "--no-newline" },
+    },
+    cache_enabled = 0,
+  }
+end
 
 -- ======================
 -- LAZY.NVIM BOOTSTRAP
